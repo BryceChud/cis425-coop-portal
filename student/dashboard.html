@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+<div class="header">
+    <img src="../assets/logo.png" class="header-logo">
+    <h1 class="header-title">Student Dashboard</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+    <div class="row">
+        <div class="card">
+            <h3>Profile</h3>
+            <p><b>Name:</b> John Smith</p>
+            <p><b>Major:</b> Computer Science</p>
+            <p><b>Credits:</b> 67</p>
+            <p><b>GPA:</b> 4.0</p>
+        </div>
+
+        <div class="card">
+            <h3>Eligibility</h3>
+            <p>✔ Eligible</p>
+            <p><b>Hours:</b> 160</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <h2>Search Internships</h2>
+
+    <div class="search-bar">
+        <input type="text" id="keyword" placeholder="Keyword">
+        <select id="majorFilter">
+            <option value="">Any Major</option>
+            <option value="Computer Science">Computer Science</option>
+            <option value="Software Engineering">Software Engineering</option>
+            <option value="Electrical Engineering">Electrical Engineering</option>
+        </select>
+
+        <select id="locationFilter">
+            <option value="">Any Location</option>
+            <option value="Remote">Remote</option>
+            <option value="Detroit">Detroit</option>
+            <option value="Ann Arbor">Ann Arbor</option>
+        </select>
+
+        <button id="searchBtn">Search</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Position</th>
+                <th>Employer</th>
+                <th>Location</th>
+                <th>Major</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+    </table>
+
+</div>
+
+<script src="../js/data.js"></script>
+<script src="../js/student.js"></script>
+</body>
+</html>
