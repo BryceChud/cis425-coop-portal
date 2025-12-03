@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Employer Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<div class="header">
+    <img src="../assets/logo.png" class="header-logo">
+    <h1 class="header-title">Employer Dashboard</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+    <h2>Your Internship Postings</h2>
+
+    <table id="jobTable">
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Status</th>
+                <th>Applicants</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="jobBody"></tbody>
+    </table>
+
+    <br>
+    <hr>
+    <br>
+
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <h3>Upload Offer Letter</h3>
+            <input type="file" id="offerFile">
+            <br><br>
+            <button onclick="submitOffer()">Submit</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="../js/employer.js"></script>
+</body>
+</html>
