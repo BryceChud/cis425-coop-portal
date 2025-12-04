@@ -1,53 +1,24 @@
+/* ===============================
+   GLOBAL PAGE SETTINGS
+   =============================== */
 body {
     margin: 0;
     padding: 0;
-    background: #00274C;
-    font-family: Arial;
+    background: #00274C;  /* Michigan Blue */
+    font-family: Arial, sans-serif;
     color: white;
 }
 
-/* LOGIN BOX */
-.login-container {
-    width: 350px;
-    margin: 80px auto;
-    background: #043B72;
-    padding: 25px;
-    border-radius: 10px;
-    text-align: center;
-}
-
-.logo {
-    width: 70px;
-    margin-bottom: 10px;
-}
-
-.form-group {
-    margin: 15px 0;
-    text-align: left;
-}
-
-input[type=text], input[type=password] {
-    width: 100%;
-    padding: 8px;
-    border-radius: 5px;
-    border: none;
-}
-
-button {
-    padding: 10px 16px;
-    cursor: pointer;
-    border-radius: 6px;
-    border: none;
-}
-
-/* HEADER */
+/* ===============================
+   HEADER BAR
+   =============================== */
 .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: #043B72;
     padding: 12px 20px;
-    border-bottom: 4px solid #FFCB05;
+    border-bottom: 4px solid #FFCB05; /* Michigan Maize */
 }
 
 .header-logo {
@@ -62,34 +33,101 @@ button {
     color: #FFCB05;
 }
 
+/* ===============================
+   BUTTONS
+   =============================== */
+button, .btn {
+    padding: 10px 18px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    font-weight: bold;
+}
+
+/* Logout */
 .logout-btn {
     background: #FFCB05;
     color: #00274C;
-    font-weight: bold;
-    padding: 8px 16px;
-    border-radius: 6px;
+}
+.logout-btn:hover {
+    background: #f2c200;
 }
 
-/* HOME BUTTON STYLE */
+/* Home Button */
 .home-btn {
-    background: #FFCB05;          /* Michigan maize */
-    color: #00274C;               /* Michigan blue */
-    padding: 8px 14px;
-    border: none;
-    border-radius: 6px;
-    margin-right: 10px;           /* Spacing before Logout */
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s ease-in-out;
+    background: #FFCB05;
+    color: #00274C;
+    margin-right: 10px;   /* space before logout */
 }
-
 .home-btn:hover {
     background: #f2c200;
     transform: scale(1.05);
 }
 
+/* Small Buttons (Applicants Select) */
+.small-btn {
+    padding: 8px 14px;
+    background: #FFCB05;
+    color: #00274C;
+    border-radius: 6px;
+    border: none;
+}
+.small-btn:hover {
+    background: #f2c200;
+    transform: scale(1.05);
+}
 
-/* PAGE LAYOUT */
+/* Full-width buttons (forms) */
+.full-btn {
+    width: 100%;
+    padding: 12px 0;
+    background: #FFCB05;
+    color: #00274C;
+    font-size: 18px;
+    margin-top: 15px;
+}
+.full-btn:hover {
+    background: #e4b800;
+}
+
+/* ===============================
+   LOGIN BOX
+   =============================== */
+.login-container {
+    width: 350px;
+    margin: 80px auto;
+    background: #043B72;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.logo {
+    width: 70px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    margin: 15px 0;
+    text-align: left;
+}
+
+input[type=text],
+input[type=password],
+input[type=number],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+    margin-top: 4px;
+}
+
+/* ===============================
+   PAGE CONTAINERS & CARDS
+   =============================== */
 .container {
     padding: 20px;
 }
@@ -102,21 +140,89 @@ button {
     margin-right: 20px;
 }
 
-.row {
-    display: flex;
+.large-card {
+    width: 600px;
+    background: #043B72;
+    padding: 25px;
+    margin: 30px auto;
+    border-radius: 12px;
 }
 
-table {
+.large-card h2 {
+    color: #FFCB05;
+    margin-bottom: 20px;
+}
+
+.input-field {
+    margin-bottom: 15px;
+}
+
+/* ===============================
+   TABLES (Professional + Aligned)
+   =============================== */
+table.styled-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
+    margin-top: 20px;
+    background-color: #043B72;
+    border-radius: 10px;
+    overflow: hidden;
+    table-layout: fixed;   /* Forces equal-width columns */
 }
 
-table th, table td {
-    padding: 10px;
-    border: 1px solid #003060;
+table.styled-table th,
+table.styled-table td {
+    padding: 14px;
+    text-align: center;
+    font-size: 18px;
+    color: white;
+    border-bottom: 2px solid #00274C;
 }
 
+table.styled-table th {
+    background-color: #00274C;
+    color: #FFCB05;
+    font-weight: bold;
+}
+
+table.styled-table tr:hover {
+    background-color: rgba(255, 203, 5, 0.08);
+}
+
+.resume-link {
+    color: #FFCB05;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+/* ===============================
+   STATUS BADGES
+   =============================== */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.status-open {
+    background: #FFCB05;
+    color: #00274C;
+}
+
+.status-pending {
+    background: #FFA500;
+    color: #00274C;
+}
+
+.status-closed {
+    background: #D9534F;
+    color: white;
+}
+
+/* ===============================
+   MODAL POPUP
+   =============================== */
 .modal {
     display: none;
     position: fixed;
@@ -130,7 +236,15 @@ table th, table td {
 .modal-content {
     background: #043B72;
     padding: 20px;
-    width: 320px;
+    width: 340px;
     margin: 10% auto;
-    border-radius: 10px;
+    border-radius: 12px;
+}
+
+/* ===============================
+   FLEX ROW LAYOUTS
+   =============================== */
+.row {
+    display: flex;
+    flex-wrap: wrap;
 }
