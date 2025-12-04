@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Faculty Profile</title>
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        .profile-card {
+            background: #043B72;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 700px;
+            margin: auto;
+        }
+
+        label {
+            font-size: 16px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            margin-bottom: 18px;
+            font-size: 16px;
+        }
+
+        #saveMsg {
+            display: none;
+            background: #4CAF50;
+            color: #fff;
+            padding: 12px;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <img src="../assets/logo.png" class="header-logo">
+    <h1 class="header-title">Faculty Profile</h1>
+
+    <div>
+        <button class="home-btn" onclick="goHome()">Home</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<!-- MAIN CONTAINER -->
+<div class="container">
+
+    <div class="profile-card">
+
+        <h2>Your Profile</h2>
+
+        <label>Full Name</label>
+        <input type="text" id="facultyName">
+
+        <label>Email Address</label>
+        <input type="email" id="facultyEmail">
+
+        <label>Home Department</label>
+        <input type="text" id="facultyDept">
+
+        <button onclick="saveFaculty()">Save Profile</button>
+
+        <div id="saveMsg">Profile Saved Successfully!</div>
+
+    </div>
+
+</div>
+
+<script>
+function logout() {
+    window.location.href = "../index.html";
+}
+
+function goHome() {
+    window.location.href = "dashboard.html";
+}
+
+function saveFaculty() {
+    let msg = document.getElementById("saveMsg");
+    msg.style.display = "block";
+
+    setTimeout(() => msg.style.display = "none", 2500);
+}
+</script>
+
+</body>
+</html>

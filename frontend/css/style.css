@@ -70,6 +70,25 @@ button {
     border-radius: 6px;
 }
 
+/* HOME BUTTON STYLE */
+.home-btn {
+    background: #FFCB05;          /* Michigan maize */
+    color: #00274C;               /* Michigan blue */
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    margin-right: 10px;           /* Spacing before Logout */
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s ease-in-out;
+}
+
+.home-btn:hover {
+    background: #f2c200;
+    transform: scale(1.05);
+}
+
+
 /* PAGE LAYOUT */
 .container {
     padding: 20px;

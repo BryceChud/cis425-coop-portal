@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Co-op Summary</title>
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        #submitMsg {
+            display: none;
+            background: #4CAF50;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        textarea {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            width: 100%;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <img src="../assets/logo.png" class="header-logo">
+    <h1 class="header-title">Co-op Summary</h1>
+
+    <div>
+        <button class="home-btn" onclick="goHome()">Home</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card" style="max-width:700px;margin:auto;">
+        <h2>Submit Your Co-op Summary</h2>
+
+        <textarea id="summaryText" placeholder="Write your summary here..." style="height:200px;"></textarea>
+
+        <button onclick="submitSummary()">Submit</button>
+
+        <div id="submitMsg">Summary Submitted Successfully!</div>
+    </div>
+</div>
+
+<script>
+function logout() {
+    window.location.href = "../index.html";
+}
+
+function goHome() {
+    window.location.href = "dashboard.html";
+}
+
+function submitSummary() {
+    const text = document.getElementById("summaryText").value.trim();
+
+    if (text === "") {
+        alert("Please write something before submitting.");
+        return;
+    }
+
+    // Demo-only confirmation message
+    let msg = document.getElementById("submitMsg");
+    msg.style.display = "block";
+
+    setTimeout(() => msg.style.display = "none", 2500);
+}
+</script>
+
+</body>
+</html>

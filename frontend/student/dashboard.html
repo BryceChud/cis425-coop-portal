@@ -4,63 +4,136 @@
     <meta charset="UTF-8">
     <title>Student Dashboard</title>
     <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        .actions-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 35px;
+        }
+
+        .card {
+            background: #043B72;
+            padding: 20px;
+            border-radius: 10px;
+            width: 270px;
+            height: 160px;
+            color: white;
+        }
+
+        .card h3 {
+            color: #FFCB05;
+            margin-top: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th, table td {
+            border: 1px solid #0A2F56;
+            padding: 12px;
+            text-align: left;
+            color: white;
+        }
+
+        table th {
+            background-color: #043B72;
+        }
+
+        .no-results {
+            color: white;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 18px;
+            opacity: 0.85;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: #FFCB05;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #e0b606;
+        }
+    </style>
 </head>
 
 <body>
+
+<!-- HEADER -->
 <div class="header">
     <img src="../assets/logo.png" class="header-logo">
     <h1 class="header-title">Student Dashboard</h1>
-    <button class="logout-btn" onclick="logout()">Logout</button>
+
+    <div>
+        <button class="home-btn" onclick="goHome()">Home</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
 </div>
 
+<!-- MAIN CONTENT -->
 <div class="container">
 
-    <div class="row">
+    <h2>Student Actions</h2>
+
+    <!-- SIDE-BY-SIDE ACTION CARDS -->
+    <div class="actions-row">
+
+        <!-- Profile Card -->
         <div class="card">
-            <h3>Profile</h3>
-            <p><b>Name:</b> John Smith</p>
-            <p><b>Major:</b> Computer Science</p>
-            <p><b>Credits:</b> 67</p>
-            <p><b>GPA:</b> 4.0</p>
+            <h3>My Profile</h3>
+            <p>Update your academic and personal information.</p>
+            <button onclick="window.location.href='profile.html'">Open</button>
         </div>
 
+        <!-- Co-op Summary Card -->
         <div class="card">
-            <h3>Eligibility</h3>
-            <p>✔ Eligible</p>
-            <p><b>Hours:</b> 160</p>
+            <h3>Submit Co-op Summary</h3>
+            <p>Required for earning co-op course credit.</p>
+            <button onclick="window.location.href='summary.html'">Submit</button>
         </div>
+
     </div>
-
-    <hr>
 
     <h2>Search Internships</h2>
 
-    <div class="search-bar">
-        <input type="text" id="keyword" placeholder="Keyword">
-        <select id="majorFilter">
-            <option value="">Any Major</option>
-            <option value="Computer Science">Computer Science</option>
-            <option value="Software Engineering">Software Engineering</option>
-            <option value="Electrical Engineering">Electrical Engineering</option>
-        </select>
+    <!-- SEARCH BAR -->
+    <input id="keyword" placeholder="Keyword">
 
-        <select id="locationFilter">
-            <option value="">Any Location</option>
-            <option value="Remote">Remote</option>
-            <option value="Detroit">Detroit</option>
-            <option value="Ann Arbor">Ann Arbor</option>
-        </select>
+    <select id="majorFilter">
+        <option value="">Any Major</option>
+        <option value="CS">CS</option>
+        <option value="SWE">SWE</option>
+        <option value="ITM">ITM</option>
+    </select>
 
-        <button id="searchBtn">Search</button>
-    </div>
+    <select id="locationFilter">
+        <option value="">Any Location</option>
+        <option value="Remote">Remote</option>
+        <option value="Detroit">Detroit</option>
+        <option value="Ann Arbor">Ann Arbor</option>
+    </select>
 
-    <table>
+    <button onclick="searchInternships()">Search</button>
+
+    <!-- PLACEHOLDER BEFORE SEARCH -->
+    <p id="placeholder" class="no-results">
+        No internships to display. Use the search fields above to begin.
+    </p>
+
+    <!-- RESULTS TABLE -->
+    <table id="resultsTable" style="display:none;">
         <thead>
             <tr>
                 <th>Position</th>
                 <th>Employer</th>
-                <th>Location</th>
-                <th>Major</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -69,7 +142,67 @@
 
 </div>
 
-<script src="../js/data.js"></script>
-<script src="../js/student.js"></script>
+<!-- LOGIC -->
+<script>
+function logout() {
+    window.location.href = "../index.html";
+}
+
+function goHome() {
+    window.location.href = "dashboard.html";
+}
+
+function searchInternships() {
+    const keyword = document.getElementById("keyword").value.toLowerCase();
+    const major = document.getElementById("majorFilter").value;
+    const location = document.getElementById("locationFilter").value;
+
+    // Demo internship data
+    const internships = [
+        { title: "Software Intern", employer: "Google", major: "CS", location: "Remote" }
+    ];
+
+    const results = internships.filter(job => {
+        return (
+            (keyword === "" || job.title.toLowerCase().includes(keyword)) &&
+            (major === "" || job.major === major) &&
+            (location === "" || job.location === location)
+        );
+    });
+
+    const table = document.getElementById("resultsTable");
+    const body = document.getElementById("resultsBody");
+    const placeholder = document.getElementById("placeholder");
+
+    body.innerHTML = "";
+
+    if (results.length === 0) {
+        table.style.display = "none";
+        placeholder.style.display = "block";
+        placeholder.textContent = "No internships found. Try different search filters.";
+        return;
+    }
+
+    placeholder.style.display = "none";
+    table.style.display = "table";
+
+    results.forEach(job => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${job.title}</td>
+            <td>${job.employer}</td>
+            <td><button onclick="apply()">Apply</button></td>
+        `;
+
+        body.appendChild(row);
+    });
+}
+
+function apply() {
+    alert("Application submitted successfully!");
+}
+</script>
+
 </body>
 </html>

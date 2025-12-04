@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Job Posting</title>
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        .job-card {
+            background: #043B72;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        label {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            margin-bottom: 18px;
+            border: none;
+        }
+
+        textarea {
+            height: 150px;
+            resize: vertical;
+        }
+
+        #submitMsg {
+            display: none;
+            background: #4CAF50;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <img src="../assets/logo.png" class="header-logo">
+    <h1 class="header-title">Create Job Posting</h1>
+
+    <div>
+        <button class="home-btn" onclick="goHome()">Home</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<!-- FORM CONTAINER -->
+<div class="container">
+
+    <div class="job-card">
+        <h2>Job Details</h2>
+
+        <label>Job Title</label>
+        <input type="text">
+
+        <label>Description</label>
+        <textarea></textarea>
+
+        <label>Weeks</label>
+        <input type="number">
+
+        <label>Hours Per Week</label>
+        <input type="number">
+
+        <label>Location</label>
+        <input type="text">
+
+        <label>Majors of Interest</label>
+        <input type="text">
+
+        <label>Required Skills</label>
+        <input type="text">
+
+        <label>Preferred Skills</label>
+        <input type="text">
+
+        <label>Salary</label>
+        <input type="text">
+
+        <button onclick="submitJob()">Submit</button>
+
+        <div id="submitMsg">Job Posted Successfully!</div>
+    </div>
+
+</div>
+
+<script>
+function logout() {
+    window.location.href = "../index.html";
+}
+
+function goHome() {
+    window.location.href = "dashboard.html";
+}
+
+function submitJob() {
+    let msg = document.getElementById("submitMsg");
+    msg.style.display = "block";
+
+    setTimeout(() => msg.style.display = "none", 2500);
+}
+</script>
+
+</body>
+</html>

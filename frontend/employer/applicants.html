@@ -2,14 +2,14 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Employer Dashboard</title>
+    <title>Applicants</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
 <div class="header">
     <img src="../assets/logo.png" class="header-logo">
-    <h1 class="header-title">Employer Dashboard</h1>
+    <h1 class="header-title">Applicants</h1>
     <div>
         <button class="home-btn" onclick="goHome()">Home</button>
         <button class="logout-btn" onclick="logout()">Logout</button>
@@ -17,16 +17,23 @@
 </div>
 
 <div class="container">
-    <div class="row">
-        <div class="card"><h3>Company Profile</h3><button onclick="location='company-profile.html'">Open</button></div>
-        <div class="card"><h3>Create Job Posting</h3><button onclick="location='create-job.html'">Open</button></div>
-        <div class="card"><h3>View Applicants</h3><button onclick="location='applicants.html'">Open</button></div>
-    </div>
+    <table>
+        <thead><tr><th>Name</th><th>Major</th><th>Resume</th><th>Select</th></tr></thead>
+        <tbody>
+            <tr>
+                <td>John Smith</td>
+                <td>CS</td>
+                <td><a href="#">View</a></td>
+                <td><button>Select</button></td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
 <script>
 function logout(){ window.location.href="../index.html"; }
 function goHome(){ window.location.href="dashboard.html"; }
 </script>
+
 </body>
 </html>

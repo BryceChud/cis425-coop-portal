@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Profile</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .profile-card { background:#043B72;padding:30px;border-radius:10px;max-width:800px;margin:auto; }
+        label { font-size:16px;font-weight:bold;margin-bottom:4px;display:block; }
+        input, select { font-size:16px;padding:10px;margin-bottom:18px;width:100%;border-radius:6px;border:none; }
+        .form-row { display:flex;gap:25px; }
+        .form-row div { flex:1; }
+        #saveMsg { display:none;background:#4CAF50;color:#fff;padding:12px;text-align:center;border-radius:6px;margin-top:10px;font-weight:bold; }
+    </style>
+</head>
+
+<body>
+<div class="header">
+    <img src="../assets/logo.png" class="header-logo">
+    <h1 class="header-title">Student Profile</h1>
+
+    <div>
+        <button class="home-btn" onclick="goHome()">Home</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="profile-card">
+
+        <h2>Your Profile</h2>
+
+        <label>Full Name</label>
+        <input type="text">
+
+        <div class="form-row">
+            <div>
+                <label>Email</label>
+                <input type="email">
+            </div>
+            <div>
+                <label>Phone</label>
+                <input type="text">
+            </div>
+        </div>
+
+        <label>Department</label>
+        <input type="text">
+
+        <label>Major</label>
+        <input type="text">
+
+        <div class="form-row">
+            <div>
+                <label>Credits Completed</label>
+                <input type="number">
+            </div>
+            <div>
+                <label>GPA</label>
+                <input type="text">
+            </div>
+        </div>
+
+        <label>Start Semester/Year</label>
+        <input type="text">
+
+        <div class="form-row">
+            <div>
+                <label>Transfer Student?</label>
+                <select><option>No</option><option>Yes</option></select>
+            </div>
+            <div>
+                <label>Upload Resume</label>
+                <input type="file">
+            </div>
+        </div>
+
+        <button onclick="saveProfile()">Save Profile</button>
+
+        <div id="saveMsg">Profile Saved Successfully!</div>
+
+    </div>
+</div>
+
+<script>
+function logout(){ window.location.href="../index.html"; }
+function goHome(){ window.location.href="dashboard.html"; }
+
+function saveProfile(){
+    let msg=document.getElementById("saveMsg");
+    msg.style.display="block";
+    setTimeout(()=>msg.style.display="none",2500);
+}
+</script>
+
+</body>
+</html>
