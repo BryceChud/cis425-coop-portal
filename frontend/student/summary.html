@@ -50,8 +50,20 @@
         <div id="submitMsg">Summary Submitted Successfully!</div>
     </div>
 </div>
+<div id="noCoopMsg" style="display:none;
+                            background:#e53935;
+                            color:white;
+                            padding:12px;
+                            text-align:center;
+                            border-radius:6px;
+                            margin-top:10px;
+                            font-weight:bold;">
+    You do not currently have a co-op assignment, so you cannot submit a summary.
+</div>
 
 <script>
+let currentCoopId = null;  // will be set if a co-op record exists
+
 function logout() {
     window.location.href = "../index.html";
 }
@@ -60,21 +72,92 @@ function goHome() {
     window.location.href = "dashboard.html";
 }
 
-function submitSummary() {
-    const text = document.getElementById("summaryText").value.trim();
+function getStudentIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    // Use ?studentId=1001 in URL; default to 1001 if missing
+    return params.get("studentId") || "1001";
+}
+
+async function loadSummary() {
+    const studentId = getStudentIdFromUrl();
+    const textarea = document.getElementById("summaryText");
+    const submitBtn = document.querySelector("button[onclick='submitSummary()']");
+    const noCoopMsg = document.getElementById("noCoopMsg");
+
+    try {
+        const res = await fetch(`/api/students/${studentId}/coop-summary`);
+
+        if (res.status === 404) {
+            // No co-op record for this student
+            currentCoopId = null;
+            textarea.disabled = true;
+            submitBtn.disabled = true;
+            noCoopMsg.style.display = "block";
+            return;
+        }
+
+        if (!res.ok) {
+            console.error("Failed to load co-op summary:", await res.text());
+            alert("Error loading co-op information.");
+            return;
+        }
+
+        const data = await res.json();
+
+        currentCoopId = data.coopId;
+        textarea.disabled = false;
+        submitBtn.disabled = false;
+        noCoopMsg.style.display = "none";
+
+        // Pre-fill existing summary if present
+        textarea.value = data.studentSummary || "";
+    } catch (err) {
+        console.error("Error loading co-op summary", err);
+        alert("Error loading co-op information.");
+    }
+}
+
+async function submitSummary() {
+    if (!currentCoopId) {
+        alert("You do not have a co-op record, so you cannot submit a summary.");
+        return;
+    }
+
+    const textarea = document.getElementById("summaryText");
+    const text = textarea.value.trim();
 
     if (text === "") {
         alert("Please write something before submitting.");
         return;
     }
 
-    // Demo-only confirmation message
-    let msg = document.getElementById("submitMsg");
-    msg.style.display = "block";
+    try {
+        const res = await fetch(`/api/coop/${currentCoopId}/summary`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ studentSummary: text })
+        });
 
-    setTimeout(() => msg.style.display = "none", 2500);
+        if (!res.ok) {
+            console.error("Failed to submit summary:", await res.text());
+            alert("Error submitting summary.");
+            return;
+        }
+
+        // Show confirmation
+        const msg = document.getElementById("submitMsg");
+        msg.style.display = "block";
+        setTimeout(() => { msg.style.display = "none"; }, 2500);
+    } catch (err) {
+        console.error("Error submitting summary", err);
+        alert("Error submitting summary.");
+    }
 }
+
+// Load existing summary (and check co-op) when page is ready
+document.addEventListener("DOMContentLoaded", loadSummary);
 </script>
+
 
 </body>
 </html>

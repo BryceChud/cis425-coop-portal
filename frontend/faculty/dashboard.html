@@ -86,29 +86,24 @@
     </div>
 
     <!-- CO-OP STUDENTS TABLE -->
-    <h2>Co-op Students</h2>
+	<h2>Co-op Students</h2>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Major</th>
-                <th>Summary</th>
-                <th>Grade</th>
-                <th>Submit</th>
-            </tr>
-        </thead>
+	<table>
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Major</th>
+				<th>Summary</th>
+				<th>Grade</th>
+				<th>Submit</th>
+			</tr>
+		</thead>
 
-        <tbody>
-            <tr>
-                <td>John Smith</td>
-                <td>CS</td>
-                <td><button>View</button></td>
-                <td><input type="text" style="width:60px;"></td>
-                <td><button>Submit</button></td>
-            </tr>
-        </tbody>
-    </table>
+		<tbody id="coopBody">
+			<!-- Filled dynamically -->
+		</tbody>
+	</table>
+
 
 </div>
 
@@ -120,7 +115,131 @@ function logout() {
 function goHome() {
     window.location.href = "dashboard.html";
 }
+
+// Read ?facultyId=123 from the URL; default to 1 if missing
+function getFacultyIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("facultyId") || "1";
+}
+
+// Show the student summary in a simple dialog
+function showSummary(summaryText) {
+    if (!summaryText) {
+        alert("No summary has been entered yet.");
+        return;
+    }
+    alert(summaryText);
+}
+
+// Call backend to update grade for a given CoopID
+async function submitGrade(coopId, inputEl) {
+    const grade = inputEl.value.trim();
+
+    try {
+        const res = await fetch(`/api/coop/${coopId}/grade`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ grade })
+        });
+
+        if (!res.ok) {
+            const txt = await res.text();
+            console.error("Failed to update grade:", txt);
+            alert("Error updating grade.");
+            return;
+        }
+
+        alert("Grade updated.");
+    } catch (err) {
+        console.error("Error updating grade", err);
+        alert("Error updating grade.");
+    }
+}
+
+// Render rows into the table
+function renderCoopRows(rows) {
+    const tbody = document.getElementById("coopBody");
+    tbody.innerHTML = "";
+
+    if (!rows || rows.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 5;
+        td.textContent = "No co-op students found for your department.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+    }
+
+    rows.forEach(row => {
+        const tr = document.createElement("tr");
+
+        const name = `${row.first || ""} ${row.last || ""}`.trim();
+        const major = row.majorName || "N/A";
+
+        // Name
+        const nameTd = document.createElement("td");
+        nameTd.textContent = name;
+        tr.appendChild(nameTd);
+
+        // Major
+        const majorTd = document.createElement("td");
+        majorTd.textContent = major;
+        tr.appendChild(majorTd);
+
+        // Summary (View button)
+        const summaryTd = document.createElement("td");
+        const summaryBtn = document.createElement("button");
+        summaryBtn.textContent = "View";
+        summaryBtn.addEventListener("click", () => showSummary(row.studentSummary));
+        summaryTd.appendChild(summaryBtn);
+        tr.appendChild(summaryTd);
+
+        // Grade (input)
+        const gradeTd = document.createElement("td");
+        const gradeInput = document.createElement("input");
+        gradeInput.type = "text";
+        gradeInput.style.width = "60px";
+        gradeInput.value = row.grade || "";
+        gradeTd.appendChild(gradeInput);
+        tr.appendChild(gradeTd);
+
+        // Submit button
+        const submitTd = document.createElement("td");
+        const submitBtn = document.createElement("button");
+        submitBtn.textContent = "Submit";
+        submitBtn.addEventListener("click", () => submitGrade(row.coopId, gradeInput));
+        submitTd.appendChild(submitBtn);
+        tr.appendChild(submitTd);
+
+        tbody.appendChild(tr);
+    });
+}
+
+// Load co-op data when page is ready
+async function loadCoopData() {
+    const facultyId = getFacultyIdFromUrl();
+
+    try {
+        const res = await fetch(`/api/faculty/${facultyId}/coop`);
+        if (!res.ok) {
+            const txt = await res.text();
+            console.error("Failed to load coop data:", txt);
+            alert("Error loading co-op students.");
+            return;
+        }
+
+        const data = await res.json();
+        renderCoopRows(data);
+    } catch (err) {
+        console.error("Error loading coop data", err);
+        alert("Error loading co-op students.");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadCoopData);
 </script>
+
 
 </body>
 </html>

@@ -504,6 +504,139 @@ app.put("/api/applications/:applicationId/select", (req, res) => {
   }
 });
 
+// Get co-op students for a faculty member's department
+app.get("/api/faculty/:facultyId/coop", (req, res) => {
+  const facultyId = Number(req.params.facultyId);
+  if (!facultyId) {
+    return res.status(400).send("Invalid facultyId");
+  }
+
+  try {
+    const rows = db
+      .prepare(
+        `
+        SELECT
+          c.CoopID                AS coopId,
+          s.StudentID             AS studentId,
+          s.First                 AS first,
+          s.Last                  AS last,
+          m.MajorName             AS majorName,
+          c.StudentSummary        AS studentSummary,
+          c.Grade                 AS grade
+        FROM COOP c
+        JOIN APPLICATION a ON c.ApplicationID = a.ApplicationID
+        JOIN STUDENT s     ON a.StudentID     = s.StudentID
+        LEFT JOIN MAJORS m ON s.MajorID       = m.MajorID
+        JOIN FACULTY f     ON f.FacultyID     = :facultyId
+        -- match student's department to faculty's department
+        WHERE m.DepartmentID = f.DepartmentID
+        ORDER BY s.Last, s.First;
+      `
+      )
+      .all({ facultyId });
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Error in /api/faculty/:facultyId/coop", err);
+    res.status(500).send("Database error");
+  }
+});
+
+// Update grade for a co-op record
+app.put("/api/coop/:coopId/grade", (req, res) => {
+  const coopId = Number(req.params.coopId);
+  const { grade } = req.body;
+
+  if (!coopId) {
+    return res.status(400).send("Invalid coopId");
+  }
+
+  try {
+    const info = db
+      .prepare(
+        `
+        UPDATE COOP
+        SET Grade = :grade
+        WHERE CoopID = :coopId;
+      `
+      )
+      .run({ grade, coopId });
+
+    if (info.changes === 0) {
+      return res.status(404).send("Co-op record not found");
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error updating COOP grade", err);
+    res.status(500).send("Database error");
+  }
+});
+
+// GET /api/students/:studentId/coop-summary
+// Returns the student's coop record (if any) and existing summary
+app.get("/api/students/:studentId/coop-summary", (req, res) => {
+    try {
+        const studentId = Number(req.params.studentId);
+        if (!studentId) {
+            return res.status(400).json({ error: "Invalid studentId" });
+        }
+
+        const row = db.prepare(`
+            SELECT
+                c.CoopID        AS coopId,
+                c.StudentSummary AS studentSummary,
+                c.Grade          AS grade,
+                a.ApplicationID  AS applicationId
+            FROM COOP c
+            JOIN APPLICATION a ON c.ApplicationID = a.ApplicationID
+            WHERE a.StudentID = ?
+            LIMIT 1
+        `).get(studentId);
+
+        if (!row) {
+            // No co-op record for this student
+            return res.status(404).json({ error: "No co-op record found for this student" });
+        }
+
+        res.json(row);
+    } catch (err) {
+        console.error("Error in GET /api/students/:studentId/coop-summary", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// PUT /api/coop/:coopId/summary
+// Body: { studentSummary: "..." }
+app.put("/api/coop/:coopId/summary", (req, res) => {
+    try {
+        const coopId = Number(req.params.coopId);
+        const { studentSummary } = req.body || {};
+
+        if (!coopId) {
+            return res.status(400).json({ error: "Invalid coopId" });
+        }
+        if (!studentSummary || !studentSummary.trim()) {
+            return res.status(400).json({ error: "studentSummary is required" });
+        }
+
+        const info = db.prepare(`
+            UPDATE COOP
+            SET StudentSummary = ?
+            WHERE CoopID = ?
+        `).run(studentSummary.trim(), coopId);
+
+        if (info.changes === 0) {
+            return res.status(404).json({ error: "Co-op record not found" });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Error in PUT /api/coop/:coopId/summary", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
 
 
 
