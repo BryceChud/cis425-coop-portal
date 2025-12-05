@@ -28,57 +28,56 @@
 <div class="container">
     <div class="profile-card">
 
-        <h2>Your Profile</h2>
+<label>Full Name</label>
+<input type="text" id="fullName">
 
-        <label>Full Name</label>
-        <input type="text">
+<div class="form-row">
+    <div>
+        <label>Email</label>
+        <input type="email" id="email">
+    </div>
+    <div>
+        <label>Phone</label>
+        <input type="text" id="phone">
+    </div>
+</div>
 
-        <div class="form-row">
-            <div>
-                <label>Email</label>
-                <input type="email">
-            </div>
-            <div>
-                <label>Phone</label>
-                <input type="text">
-            </div>
-        </div>
+<label>Department</label>
+<input type="text" id="department">
 
-        <label>Department</label>
-        <input type="text">
+<label>Major</label>
+<input type="text" id="major">
 
-        <label>Major</label>
-        <input type="text">
+<div class="form-row">
+    <div>
+        <label>Credits Completed</label>
+        <input type="number" id="credits">
+    </div>
+    <div>
+        <label>GPA</label>
+        <input type="text" id="gpa">
+    </div>
+</div>
 
-        <div class="form-row">
-            <div>
-                <label>Credits Completed</label>
-                <input type="number">
-            </div>
-            <div>
-                <label>GPA</label>
-                <input type="text">
-            </div>
-        </div>
+<label>Start Semester/Year</label>
+<input type="text" id="yearStarted">
 
-        <label>Start Semester/Year</label>
-        <input type="text">
+<div class="form-row">
+    <div>
+        <label>Transfer Student?</label>
+        <select id="transfer">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+        </select>
+    </div>
+    <div>
+        <label>Upload Resume</label>
+        <input type="file" id="resumeFile">
+    </div>
+</div>
 
-        <div class="form-row">
-            <div>
-                <label>Transfer Student?</label>
-                <select><option>No</option><option>Yes</option></select>
-            </div>
-            <div>
-                <label>Upload Resume</label>
-                <input type="file">
-            </div>
-        </div>
-
-        <button onclick="saveProfile()">Save Profile</button>
-
-        <div id="saveMsg">Profile Saved Successfully!</div>
-
+<button onclick="saveProfile()">Save Profile</button>
+<div id="saveMsg">Profile saved successfully!</div>
     </div>
 </div>
 
@@ -86,11 +85,101 @@
 function logout(){ window.location.href="../index.html"; }
 function goHome(){ window.location.href="dashboard.html"; }
 
-function saveProfile(){
-    let msg=document.getElementById("saveMsg");
-    msg.style.display="block";
-    setTimeout(()=>msg.style.display="none",2500);
+function getStudentIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    // default to 1 if not provided
+    return params.get("studentId") || "1001";
 }
+
+async function loadProfile() {
+    const studentId = getStudentIdFromUrl();
+
+    try {
+        const res = await fetch(`/api/students/${studentId}`);
+        if (!res.ok) {
+            console.error("Failed to load student", await res.text());
+            return;
+        }
+        const data = await res.json();
+
+        // Fill the form
+        const fullName = `${data.first} ${data.last}`.trim();
+
+        document.getElementById("fullName").value    = fullName;
+        document.getElementById("email").value       = data.email || "";
+        document.getElementById("phone").value       = data.phone || "";
+        document.getElementById("department").value  = data.departmentName || "";
+        document.getElementById("major").value       = data.majorName || "";
+        document.getElementById("credits").value     = data.creditHours ?? "";
+        document.getElementById("gpa").value         = data.gpa ?? "";
+        document.getElementById("yearStarted").value = data.yearStarted ?? "";
+        document.getElementById("transfer").value    = data.transfer ? "Yes" : "No";
+    } catch (err) {
+        console.error("Error loading student profile", err);
+    }
+}
+
+async function saveProfile() {
+    const studentId = getStudentIdFromUrl();
+
+    const fullName   = document.getElementById("fullName").value.trim();
+    const email      = document.getElementById("email").value.trim();
+    const phone      = document.getElementById("phone").value.trim();
+    const department = document.getElementById("department").value.trim();
+    const major      = document.getElementById("major").value.trim();
+    const credits    = document.getElementById("credits").value;
+    const gpa        = document.getElementById("gpa").value;
+    const year       = document.getElementById("yearStarted").value;
+    const transfer   = document.getElementById("transfer").value === "Yes";
+
+    // very simple split: first word = First, rest = Last
+    let first = "";
+    let last  = "";
+    if (fullName.includes(" ")) {
+        const parts = fullName.split(" ");
+        first = parts.shift();
+        last  = parts.join(" ") || "";
+    } else {
+        first = fullName;
+        last  = "";
+    }
+
+    const payload = {
+        first,
+        last,
+        email,
+        phone,
+        // for now we don't change majorId from here; set null or hard-code if needed
+        majorId: null,
+        resume: null,
+        creditHours: credits ? Number(credits) : null,
+        gpa: gpa ? Number(gpa) : null,
+        yearStarted: year ? Number(year) : null,
+        transfer
+    };
+
+    try {
+        const res = await fetch(`/api/students/${studentId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            console.error("Failed to save profile", await res.text());
+            return;
+        }
+
+        let msg=document.getElementById("saveMsg");
+        msg.style.display="block";
+        setTimeout(()=>msg.style.display="none",2500);
+    } catch (err) {
+        console.error("Error saving student profile", err);
+    }
+}
+
+// load profile when page is ready
+document.addEventListener("DOMContentLoaded", loadProfile);
 </script>
 
 </body>

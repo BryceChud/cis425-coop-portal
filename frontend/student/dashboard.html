@@ -152,57 +152,109 @@ function goHome() {
     window.location.href = "dashboard.html";
 }
 
-function searchInternships() {
-    const keyword = document.getElementById("keyword").value.toLowerCase();
-    const major = document.getElementById("majorFilter").value;
+// TODO: replace this with real login / session logic
+function getCurrentStudentId() {
+    return 1; // TEMP: change to real ID
+}
+
+async function searchInternships() {
+    const keyword  = document.getElementById("keyword").value;
+    const major    = document.getElementById("majorFilter").value;
     const location = document.getElementById("locationFilter").value;
 
-    // Demo internship data
-    const internships = [
-        { title: "Software Intern", employer: "Google", major: "CS", location: "Remote" }
-    ];
+    const params = new URLSearchParams();
+    if (keyword)  params.append("keyword", keyword);
+    if (major)    params.append("major", major);
+    if (location) params.append("location", location);
 
-    const results = internships.filter(job => {
-        return (
-            (keyword === "" || job.title.toLowerCase().includes(keyword)) &&
-            (major === "" || job.major === major) &&
-            (location === "" || job.location === location)
-        );
-    });
-
-    const table = document.getElementById("resultsTable");
-    const body = document.getElementById("resultsBody");
+    const table       = document.getElementById("resultsTable");
+    const body        = document.getElementById("resultsBody");
     const placeholder = document.getElementById("placeholder");
 
+    // Reset UI
     body.innerHTML = "";
+    table.style.display = "none";
+    placeholder.style.display = "block";
+    placeholder.textContent = "Searching...";
 
-    if (results.length === 0) {
-        table.style.display = "none";
+    try {
+        const response = await fetch(`/api/jobs?${params.toString()}`);
+
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+        }
+
+        const results = await response.json();
+        console.log("Jobs from server:", results); // helpful for debugging
+
+        if (!Array.isArray(results) || results.length === 0) {
+            placeholder.textContent = "No internships found for your search.";
+            table.style.display = "none";
+            return;
+        }
+
+        // We have results: show table and hide placeholder
+        placeholder.style.display = "none";
+        table.style.display = "table";
+
+        results.forEach(job => {
+            const row = document.createElement("tr");
+
+            // Make sure these property names match what your backend returns
+            row.innerHTML = `
+                <td>${job.title}</td>
+                <td>${job.employer}</td>
+                <td>
+                  <button onclick="applyForJob(${job.jobId})">
+                    Apply
+                  </button>
+                </td>
+            `;
+
+            body.appendChild(row);
+        });
+    } catch (err) {
+        console.error("Error searching internships:", err);
         placeholder.style.display = "block";
-        placeholder.textContent = "No internships found. Try different search filters.";
-        return;
+        placeholder.textContent = "Error searching internships. Please try again.";
+        table.style.display = "none";
+    }
+}
+
+// Called when the user clicks "Apply" on a row
+async function applyForJob(jobId) {
+    const studentId = getCurrentStudentId();
+
+    try {
+        const app = await createApplication(jobId, studentId);
+        alert(`Application submitted! Application ID: ${app.applicationId}`);
+    } catch (err) {
+        console.error("Apply error:", err);
+        alert("Could not submit application. Please try again.");
+    }
+}
+
+// POST /api/applications to create an application record
+async function createApplication(jobId, studentId) {
+    const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            jobId,
+            studentId,
+            selected: 0
+        }),
+    });
+
+    if (!res.ok) {
+        throw new Error(`Failed to create application: HTTP ${res.status}`);
     }
 
-    placeholder.style.display = "none";
-    table.style.display = "table";
-
-    results.forEach(job => {
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td>${job.title}</td>
-            <td>${job.employer}</td>
-            <td><button onclick="apply()">Apply</button></td>
-        `;
-
-        body.appendChild(row);
-    });
-}
-
-function apply() {
-    alert("Application submitted successfully!");
+    return await res.json();
 }
 </script>
+
+
 
 </body>
 </html>
