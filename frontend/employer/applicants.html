@@ -47,14 +47,42 @@ function getEmployerIdFromUrl() {
     return params.get("employerId") || "1"; // default}
 }
 
-function showResume(resumeText) {
-    if (!resumeText) {
-        alert("No resume on file for this student.");
-        return;
+async function downloadResume(studentId) {
+    try {
+        const res = await fetch(`/api/students/${studentId}/resume`, {
+            method: "GET"
+        });
+
+        if (!res.ok) {
+            alert("No resume found for this student.");
+            return;
+        }
+
+        // extract filename from response header
+        const disposition = res.headers.get("Content-Disposition");
+        let filename = "resume.pdf"; 
+        if (disposition && disposition.includes("filename=")) {
+            filename = disposition.split("filename=")[1].replace(/"/g, "");
+        }
+
+        // get blob and trigger download
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+        a.remove();
+    } catch (err) {
+        console.error(err);
+        alert("Error downloading resume.");
     }
-    // Simple approach: just show in an alert; you can upgrade to a modal if you want
-    alert(resumeText);
 }
+
 
 async function selectApplication(applicationId, buttonEl) {
     try {
@@ -125,16 +153,17 @@ function renderApplicants(rows) {
         tr.appendChild(majorTd);
 
         // Resume
-        const resumeTd = document.createElement("td");
-        const resumeLink = document.createElement("a");
-        resumeLink.href = "#";
-        resumeLink.textContent = "View";
-        resumeLink.addEventListener("click", e => {
-            e.preventDefault();
-            showResume(row.resume);
-        });
-        resumeTd.appendChild(resumeLink);
-        tr.appendChild(resumeTd);
+		const resumeTd = document.createElement("td");
+		const resumeLink = document.createElement("a");
+		resumeLink.href = "#";
+		resumeLink.textContent = "Download";
+		resumeLink.addEventListener("click", (e) => {
+			e.preventDefault();
+			downloadResume(row.studentId);
+		});
+		resumeTd.appendChild(resumeLink);
+		tr.appendChild(resumeTd);
+
 
         // Credit Hours
         const creditsTd = document.createElement("td");
