@@ -22,11 +22,90 @@
         <div class="card"><h3>Create Job Posting</h3><button onclick="location='create-job.html'">Open</button></div>
         <div class="card"><h3>View Applicants</h3><button onclick="location='applicants.html'">Open</button></div>
     </div>
+
+    <h2 style="margin-top:30px;">My Job Postings</h2>
+
+    <p id="jobsPlaceholder">Loading jobs...</p>
+
+    <table id="jobsTable" style="display:none; width:100%; margin-top:10px; border-collapse:collapse;">
+        <thead>
+            <tr>
+                <th style="border:1px solid #0A2F56; padding:8px;">Job ID</th>
+                <th style="border:1px solid #0A2F56; padding:8px;">Title</th>
+                <th style="border:1px solid #0A2F56; padding:8px;">Location</th>
+                <th style="border:1px solid #0A2F56; padding:8px;">Salary</th>
+                <th style="border:1px solid #0A2F56; padding:8px;">Status</th>
+            </tr>
+        </thead>
+        <tbody id="jobsBody"></tbody>
+    </table>
 </div>
 
+
 <script>
-function logout(){ window.location.href="../index.html"; }
-function goHome(){ window.location.href="dashboard.html"; }
+function logout(){ 
+    window.location.href="../index.html"; 
+}
+function goHome(){ 
+    window.location.href="dashboard.html"; 
+}
+
+function getEmployerIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("employerId") || "1"; // default
+}
+
+async function loadEmployerJobs() {
+    const employerId = getEmployerIdFromUrl();
+
+    const placeholder = document.getElementById("jobsPlaceholder");
+    const table       = document.getElementById("jobsTable");
+    const body        = document.getElementById("jobsBody");
+
+    placeholder.textContent = "Loading jobs...";
+    placeholder.style.display = "block";
+    table.style.display = "none";
+    body.innerHTML = "";
+
+    try {
+        const res = await fetch(`/api/employers/${employerId}/jobs`);
+        if (!res.ok) {
+            throw new Error("Server error");
+        }
+        const jobs = await res.json();
+
+        if (jobs.length === 0) {
+            placeholder.textContent = "You have not created any job postings yet.";
+            table.style.display = "none";
+            return;
+        }
+
+        placeholder.style.display = "none";
+        table.style.display = "table";
+
+        jobs.forEach(job => {
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+                <td style="border:1px solid #0A2F56; padding:8px;">${job.jobId}</td>
+                <td style="border:1px solid #0A2F56; padding:8px;">${job.title}</td>
+                <td style="border:1px solid #0A2F56; padding:8px;">${job.location || ""}</td>
+                <td style="border:1px solid #0A2F56; padding:8px;">${job.salary ?? ""}</td>
+                <td style="border:1px solid #0A2F56; padding:8px;">${job.status || ""}</td>
+            `;
+
+            body.appendChild(tr);
+        });
+    } catch (err) {
+        console.error("Error loading employer jobs", err);
+        placeholder.textContent = "Error loading jobs from the server.";
+        table.style.display = "none";
+    }
+}
+
+// Load jobs when the page is ready
+document.addEventListener("DOMContentLoaded", loadEmployerJobs);
 </script>
+
 </body>
 </html>

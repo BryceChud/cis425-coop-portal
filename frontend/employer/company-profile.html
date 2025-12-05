@@ -62,22 +62,22 @@
         <h2>Company Information</h2>
 
         <label>Company Name</label>
-        <input type="text">
+        <input type="text" id="companyName">
 
         <label>Location</label>
-        <input type="text">
+        <input type="text" id="location">
 
         <label>Website</label>
-        <input type="text">
+        <input type="text" id="website">
 
         <label>Contact Person</label>
-        <input type="text">
+        <input type="text" id="contactPerson">
 
         <label>Contact Email</label>
-        <input type="email">
+        <input type="email" id="contactEmail">
 
         <label>Contact Phone</label>
-        <input type="text">
+        <input type="text" id="contactPhone">
 
         <button onclick="saveCompany()">Save</button>
 
@@ -96,12 +96,95 @@ function goHome() {
     window.location.href = "dashboard.html";
 }
 
-function saveCompany() {
-    let msg = document.getElementById("saveMsg");
-    msg.style.display = "block";
-
-    setTimeout(() => msg.style.display = "none", 2500);
+function getEmployerIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("employerId") || "1"; // default
 }
+
+// --- load employer from backend ---
+async function loadCompany() {
+    const employerId = getEmployerIdFromUrl();
+
+    try {
+        const res = await fetch(`/api/employers/${employerId}`);
+        if (!res.ok) {
+            console.error("Failed to load employer", await res.text());
+            return;
+        }
+
+        const data = await res.json();
+
+        document.getElementById("companyName").value   = data.companyName || "";
+        document.getElementById("location").value      = data.location || "";
+        document.getElementById("website").value       = data.website || "";
+
+        const contactFull = [data.contactFirst, data.contactLast]
+            .filter(Boolean)
+            .join(" ");
+        document.getElementById("contactPerson").value = contactFull;
+
+        document.getElementById("contactEmail").value  = data.email || "";
+        document.getElementById("contactPhone").value  = data.phone || "";
+    } catch (err) {
+        console.error("Error loading company profile", err);
+    }
+}
+
+// --- save employer back to backend ---
+async function saveCompany() {
+    const employerId = getEmployerIdFromUrl();
+
+    const companyName   = document.getElementById("companyName").value.trim();
+    const location      = document.getElementById("location").value.trim();
+    const website       = document.getElementById("website").value.trim();
+    const contactPerson = document.getElementById("contactPerson").value.trim();
+    const contactEmail  = document.getElementById("contactEmail").value.trim();
+    const contactPhone  = document.getElementById("contactPhone").value.trim();
+
+    // Split contactPerson into first / last
+    let contactFirst = "";
+    let contactLast  = "";
+    if (contactPerson.includes(" ")) {
+        const parts = contactPerson.split(" ");
+        contactFirst = parts.shift();
+        contactLast  = parts.join(" ") || "";
+    } else {
+        contactFirst = contactPerson;
+        contactLast  = "";
+    }
+
+    const payload = {
+        companyName,
+        location,
+        website,
+        contactFirst,
+        contactLast,
+        email: contactEmail,
+        phone: contactPhone
+    };
+
+    try {
+        const res = await fetch(`/api/employers/${employerId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            console.error("Failed to save employer", await res.text());
+            return;
+        }
+
+        let msg = document.getElementById("saveMsg");
+        msg.style.display = "block";
+        setTimeout(() => (msg.style.display = "none"), 2500);
+    } catch (err) {
+        console.error("Error saving company profile", err);
+    }
+}
+
+// load when DOM is ready
+document.addEventListener("DOMContentLoaded", loadCompany);
 </script>
 
 </body>

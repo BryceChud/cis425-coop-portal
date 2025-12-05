@@ -21,25 +21,173 @@
 
     <div class="container">
         <table class="styled-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Major</th>
-                    <th>Resume</th>
-                    <th>Select</th>
-                </tr>
-            </thead>
+			<thead>
+				<tr>
+					<th>Job</th>
+					<th>Student Name</th>
+					<th>Email</th>
+					<th>Phone #</th>
+					<th>Major</th>
+					<th>Resume</th>
+					<th>Credit Hours</th>
+					<th>Select</th>
+				</tr>
+			</thead>
 
-            <tbody>
-                <tr>
-                    <td>John Smith</td>
-                    <td>CS</td>
-                    <td><a href="#" class="resume-link">View</a></td>
-                    <td><button class="small-btn">Select</button></td>
-                </tr>
+
+            <tbody id="applicantsBody">
+                <!-- Filled dynamically -->
             </tbody>
         </table>
     </div>
+
+<script>
+function getEmployerIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("employerId") || "1"; // default}
+}
+
+function showResume(resumeText) {
+    if (!resumeText) {
+        alert("No resume on file for this student.");
+        return;
+    }
+    // Simple approach: just show in an alert; you can upgrade to a modal if you want
+    alert(resumeText);
+}
+
+async function selectApplication(applicationId, buttonEl) {
+    try {
+        const res = await fetch(`/api/applications/${applicationId}/select`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        if (!res.ok) {
+            const txt = await res.text();
+            console.error("Failed to select application", txt);
+            alert("Error selecting applicant.");
+            return;
+        }
+
+        // Update UI
+        buttonEl.textContent = "Selected";
+        buttonEl.disabled = true;
+        buttonEl.classList.add("disabled"); // optionally style in CSS
+    } catch (err) {
+        console.error("Error selecting application", err);
+        alert("Error selecting applicant.");
+    }
+}
+
+function renderApplicants(rows) {
+    const tbody = document.getElementById("applicantsBody");
+    tbody.innerHTML = "";
+
+    if (!rows || rows.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 8;
+        td.textContent = "No applicants found.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+    }
+
+    rows.forEach(row => {
+        const tr = document.createElement("tr");
+
+        const name = `${row.first || ""} ${row.last || ""}`.trim();
+
+        // Job Title
+        const jobTd = document.createElement("td");
+        jobTd.textContent = row.jobTitle || `Job #${row.jobId}`;
+        tr.appendChild(jobTd);
+
+        // Student Name
+        const nameTd = document.createElement("td");
+        nameTd.textContent = name;
+        tr.appendChild(nameTd);
+
+        // Email
+        const emailTd = document.createElement("td");
+        emailTd.textContent = row.email || "N/A";
+        tr.appendChild(emailTd);
+
+        // Phone
+        const phoneTd = document.createElement("td");
+        phoneTd.textContent = row.phone || "N/A";
+        tr.appendChild(phoneTd);
+
+        // Major
+        const majorTd = document.createElement("td");
+        majorTd.textContent = row.majorName || "N/A";
+        tr.appendChild(majorTd);
+
+        // Resume
+        const resumeTd = document.createElement("td");
+        const resumeLink = document.createElement("a");
+        resumeLink.href = "#";
+        resumeLink.textContent = "View";
+        resumeLink.addEventListener("click", e => {
+            e.preventDefault();
+            showResume(row.resume);
+        });
+        resumeTd.appendChild(resumeLink);
+        tr.appendChild(resumeTd);
+
+        // Credit Hours
+        const creditsTd = document.createElement("td");
+        creditsTd.textContent = row.creditHours ?? "N/A";
+        tr.appendChild(creditsTd);
+
+        // Select Button
+        const selectTd = document.createElement("td");
+        const btn = document.createElement("button");
+        btn.className = "small-btn";
+
+        if (row.selected) {
+            btn.textContent = "Selected";
+            btn.disabled = true;
+        } else {
+            btn.textContent = "Select";
+            btn.addEventListener("click", () => selectApplication(row.applicationId, btn));
+        }
+
+        selectTd.appendChild(btn);
+        tr.appendChild(selectTd);
+
+        tbody.appendChild(tr);
+    });
+}
+
+
+async function loadApplicants() {
+    const employerId = getEmployerIdFromUrl();
+    if (!employerId) {
+        alert("Missing employerId in URL (e.g., ?employerId=2001)");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/employers/${employerId}/applicants`);
+        if (!res.ok) {
+            const txt = await res.text();
+            console.error("Failed to load applicants", txt);
+            alert("Error loading applicants.");
+            return;
+        }
+
+        const data = await res.json();
+        renderApplicants(data);
+    } catch (err) {
+        console.error("Error loading applicants", err);
+        alert("Error loading applicants.");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadApplicants);
+</script>
 
 </body>
 </html>
