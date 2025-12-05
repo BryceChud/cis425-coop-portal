@@ -5,12 +5,25 @@
     <title>Student Profile</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .profile-card { background:#043B72;padding:30px;border-radius:10px;max-width:800px;margin:auto; }
-        label { font-size:16px;font-weight:bold;margin-bottom:4px;display:block; }
-        input, select { font-size:16px;padding:10px;margin-bottom:18px;width:100%;border-radius:6px;border:none; }
-        .form-row { display:flex;gap:25px; }
-        .form-row div { flex:1; }
-        #saveMsg { display:none;background:#4CAF50;color:#fff;padding:12px;text-align:center;border-radius:6px;margin-top:10px;font-weight:bold; }
+		.profile-card { background:#043B72;padding:30px;border-radius:10px;max-width:800px;margin:auto; }
+		label { font-size:16px;font-weight:bold;margin-bottom:4px;display:block; }
+		input, select { font-size:16px;padding:10px;margin-bottom:18px;width:100%;border-radius:6px;border:none; }
+		.form-row { display:flex;gap:25px; }
+		.form-row div { flex:1; }
+		#saveMsg { display:none;background:#4CAF50;color:#fff;padding:12px;text-align:center;border-radius:6px;margin-top:10px;font-weight:bold; }
+
+		/* NEW: keep upload + download on one line, fixed height */
+		.resume-controls {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			min-height: 40px;   /* enough height so layout doesn’t jump */
+		}
+
+		#downloadResumeBtn {
+			visibility: hidden;  /* take up space but hidden until we know there is a file */
+		}
+
     </style>
 </head>
 
@@ -72,9 +85,17 @@
     </div>
     <div>
         <label>Upload Resume</label>
-        <input type="file" id="resumeFile">
+        <div class="resume-controls">
+            <input type="file" id="resumeFile">
+            <!-- Keep button space reserved; visibility toggled in JS -->
+            <button type="button" id="downloadResumeBtn">
+                Download Resume
+            </button>
+        </div>
     </div>
 </div>
+
+
 
 <button onclick="saveProfile()">Save Profile</button>
 <div id="saveMsg">Profile saved successfully!</div>
@@ -102,7 +123,6 @@ async function loadProfile() {
         }
         const data = await res.json();
 
-        // Fill the form
         const fullName = `${data.first} ${data.last}`.trim();
 
         document.getElementById("fullName").value    = fullName;
@@ -114,10 +134,22 @@ async function loadProfile() {
         document.getElementById("gpa").value         = data.gpa ?? "";
         document.getElementById("yearStarted").value = data.yearStarted ?? "";
         document.getElementById("transfer").value    = data.transfer ? "Yes" : "No";
+
+		const downloadBtn = document.getElementById("downloadResumeBtn");
+		downloadBtn.onclick = null; // clear any old handler
+
+		if (data.hasResume) {
+			downloadBtn.style.visibility = "visible";
+			downloadBtn.onclick = () => downloadResume();
+		} else {
+			downloadBtn.style.visibility = "hidden";
+		}
+
     } catch (err) {
         console.error("Error loading student profile", err);
     }
 }
+
 
 async function saveProfile() {
     const studentId = getStudentIdFromUrl();
@@ -132,7 +164,6 @@ async function saveProfile() {
     const year       = document.getElementById("yearStarted").value;
     const transfer   = document.getElementById("transfer").value === "Yes";
 
-    // very simple split: first word = First, rest = Last
     let first = "";
     let last  = "";
     if (fullName.includes(" ")) {
@@ -149,9 +180,8 @@ async function saveProfile() {
         last,
         email,
         phone,
-        // for now we don't change majorId from here; set null or hard-code if needed
-        majorId: null,
-        resume: null,
+        majorId: null, // still unchanged here
+        resume: null,  // we handle the actual file separately
         creditHours: credits ? Number(credits) : null,
         gpa: gpa ? Number(gpa) : null,
         yearStarted: year ? Number(year) : null,
@@ -159,6 +189,7 @@ async function saveProfile() {
     };
 
     try {
+        // 1) Save basic profile fields
         const res = await fetch(`/api/students/${studentId}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -170,13 +201,44 @@ async function saveProfile() {
             return;
         }
 
-        let msg=document.getElementById("saveMsg");
-        msg.style.display="block";
-        setTimeout(()=>msg.style.display="none",2500);
+        // 2) If a resume file is selected, upload it
+        const fileInput = document.getElementById("resumeFile");
+        const file = fileInput.files[0];
+
+        if (file) {
+            const formData = new FormData();
+            formData.append("resumeFile", file);
+
+            const uploadRes = await fetch(`/api/students/${studentId}/resume`, {
+                method: "POST",
+                body: formData
+            });
+
+            if (!uploadRes.ok) {
+                console.error("Failed to upload resume", await uploadRes.text());
+                // you could optionally alert the user here
+            }
+        }
+
+        // 3) Show confirmation message
+        let msg = document.getElementById("saveMsg");
+        msg.style.display = "block";
+        setTimeout(() => (msg.style.display = "none"), 2500);
+
+        // 4) Refresh profile to update hasResume/download button
+        loadProfile();
     } catch (err) {
         console.error("Error saving student profile", err);
     }
 }
+
+function downloadResume() {
+    const studentId = getStudentIdFromUrl();
+    // Simple redirect to the backend endpoint
+    window.location.href = `/api/students/${studentId}/resume`;
+}
+
+
 
 // load profile when page is ready
 document.addEventListener("DOMContentLoaded", loadProfile);

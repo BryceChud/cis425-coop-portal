@@ -1,6 +1,9 @@
 const express = require("express");
 const path = require("path");
 const Database = require("better-sqlite3");
+const multer = require("multer");
+const upload = multer();  // stores file in memory as Buffer
+
 
 const app = express();
 const PORT = 3000;
@@ -113,61 +116,44 @@ app.post("/api/applications", (req, res) => {
   }
 });
 
-// Fetch student profile
-app.get("/api/students/:id", (req, res) => {
-  try {
-    const studentId = Number(req.params.id);
-    if (!studentId) {
-      return res.status(400).json({ error: "Invalid student id" });
+app.get("/api/students/:studentId", (req, res) => {
+    try {
+        const studentId = req.params.studentId;
+
+        const row = db.prepare(`
+            SELECT
+                s.StudentID      AS studentId,
+                s.First          AS first,
+                s.Last           AS last,
+                s.Email          AS email,
+                s.Phone          AS phone,
+                s.CreditHours    AS creditHours,
+                s.GPA            AS gpa,
+                s.YearStarted    AS yearStarted,
+                s.Transfer       AS transfer,
+                -- department / major if you're joining them:
+                d.DepartmentName AS departmentName,
+                m.MajorName      AS majorName,
+                -- resume presence
+                CASE WHEN s.Resume IS NOT NULL THEN 1 ELSE 0 END AS hasResume
+            FROM STUDENT s
+            LEFT JOIN MAJORS m      ON s.MajorID = m.MajorID
+            LEFT JOIN DEPARTMENTS d ON m.DepartmentID = d.DepartmentID
+            WHERE s.StudentID = ?
+        `).get(studentId);
+
+        if (!row) {
+            return res.status(404).send("Student not found");
+        }
+
+        res.json(row);
+    } catch (err) {
+        console.error("Error in GET /api/students/:studentId", err);
+        res.status(500).send("Server error");
     }
-
-    const sql = `
-      SELECT
-        s.StudentID,
-        s.First,
-        s.Last,
-        s.Email,
-        s.Phone,
-        s.MajorID,
-        s.Resume,
-        s.CreditHours,
-        s.GPA,
-        s.YearStarted,
-        s.Transfer,
-        m.MajorName,
-        d.DepartmentName
-      FROM STUDENT s
-      LEFT JOIN MAJORS m ON s.MajorID = m.MajorID
-      LEFT JOIN DEPARTMENTS d ON m.DepartmentID = d.DepartmentID
-      WHERE s.StudentID = ?
-    `;
-
-    const row = db.prepare(sql).get(studentId);
-
-    if (!row) {
-      return res.status(404).json({ error: "Student not found" });
-    }
-
-    res.json({
-      studentId: row.StudentID,
-      first: row.First,
-      last: row.Last,
-      email: row.Email,
-      phone: row.Phone,
-      majorId: row.MajorID,
-      majorName: row.MajorName,
-      departmentName: row.DepartmentName,
-      resume: row.Resume,
-      creditHours: row.CreditHours,
-      gpa: row.GPA,
-      yearStarted: row.YearStarted,
-      transfer: !!row.Transfer
-    });
-  } catch (err) {
-    console.error("Error in GET /api/students/:id", err);
-    res.status(500).json({ error: "Server error" });
-  }
 });
+
+
 
 // Update student profile
 app.put("/api/students/:id", (req, res) => {
@@ -230,6 +216,73 @@ app.put("/api/students/:id", (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+// Upload / replace a student's resume
+app.post("/api/students/:id/resume", upload.single("resumeFile"), (req, res) => {
+    const studentId = req.params.id;
+
+    if (!req.file) {
+        return res.status(400).send("No file uploaded");
+    }
+
+    const fileBuffer = req.file.buffer;         // BLOB
+    const fileName   = req.file.originalname;   // original filename
+    // optional: const mimeType = req.file.mimetype;
+
+    try {
+        const stmt = db.prepare(`
+            UPDATE STUDENT
+               SET Resume = ?, ResumeName = ?
+             WHERE StudentID = ?
+        `);
+        const info = stmt.run(fileBuffer, fileName, studentId);
+
+        if (info.changes === 0) {
+            return res.status(404).send("Student not found");
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Error saving resume", err);
+        res.status(500).send("Error saving resume");
+    }
+});
+
+
+// Download a student's resume
+app.get("/api/students/:id/resume", (req, res) => {
+    const studentId = req.params.id;
+
+    try {
+        const row = db.prepare(`
+            SELECT Resume AS resumeBlob,
+                   ResumeName AS resumeName
+              FROM STUDENT
+             WHERE StudentID = ?
+        `).get(studentId);
+
+        if (!row || !row.resumeBlob) {
+            return res.status(404).send("No resume on file");
+        }
+
+        const fileBuffer = row.resumeBlob;
+        const fileName   = row.resumeName || `resume_${studentId}`;
+
+        // Tell browser to download as an attachment with this filename
+        res.setHeader("Content-Type", "application/octet-stream");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${fileName.replace(/"/g, '\\"')}"`
+        );
+
+        res.send(fileBuffer);
+    } catch (err) {
+        console.error("Error retrieving resume", err);
+        res.status(500).send("Error retrieving resume");
+    }
+});
+
+
 
 // Fetch employer
 app.get("/api/employers/:id", (req, res) => {
